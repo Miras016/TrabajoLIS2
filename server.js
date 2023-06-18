@@ -145,7 +145,7 @@ function processLogout(req, res, db) {
       (err, row) => {
         if (row === undefined) {
           res.json({ errormsg: 'No hay sesión disponible para ese token' });
-        } else if (row.token === jwtToken) {
+        } else {
           db.run('DELETE FROM sessions WHERE token = ?', jwtToken, (err) => {
             if (err) {
               res.json({ errormsg: 'Error al cerrar la sesión' });
@@ -177,8 +177,7 @@ function insertCategoria(nombre, usuarioId, db) { // Función que permite insert
 
   function insertVideo(req, res, db) {
     const { titulo, descripcion, url, categoria } = req.body;
-    const userId = req.userID;
-  
+    const userId = req.params.uid;
     // Verificar si la categoría ya existe para el usuario
     //La categoria con nombre "nom_cat" solo existe una vez por usuario es decir no hay repeticion de nombres de categorias por usuario
     db.get(
@@ -231,11 +230,11 @@ function insertCategoria(nombre, usuarioId, db) { // Función que permite insert
       'SELECT categoriaId FROM videos WHERE id = ? AND userId = ?',
       [videoId, userId],
       (err, row) => {
-        if (err) {
+        if (err || row == undefined) {
           console.log('Error al obtener la categoría del video', err);
           res.json({errormsg :'Error al obtener la categoria del video que se busca eliminar'});
         } else {
-          const categoriaId = row.categoriaId;
+          const catId = row.categoriaId;
   
           // Eliminar el video
           db.run('DELETE FROM videos WHERE id = ?', videoId, (err) => {
@@ -248,7 +247,7 @@ function insertCategoria(nombre, usuarioId, db) { // Función que permite insert
               // Verificar si no quedan más videos en la categoría
               db.get(
                 'SELECT COUNT(*) AS count FROM videos WHERE categoriaId = ?',
-                categoriaId,
+                catId,
                 (err, row) => {
                   if (err) {
                     console.log('Error al verificar la cantidad de videos en la categoría', err);
@@ -258,7 +257,7 @@ function insertCategoria(nombre, usuarioId, db) { // Función que permite insert
   
                     if (count === 0) {
                       // No quedan más videos en la categoría, eliminar la categoría
-                      db.run('DELETE FROM categorias WHERE id = ?', categoriaId, (err) => {
+                      db.run('DELETE FROM categorias WHERE id = ?', catId, (err) => {
                         if (err) {
                           console.log('Error al eliminar la categoría', err);
                           res.json({errormsg : 'La categoria no se ha eliminado'});
@@ -277,6 +276,67 @@ function insertCategoria(nombre, usuarioId, db) { // Función que permite insert
       }
     );
   }
+
+  function modificarCategoria(req, res, db) {
+    const usuarioId = req.query.uid;
+    const categoriaId = req.params.categoriaId;
+    const nuevoNombre = req.body.nombre;
+  
+    if (usuarioId) {
+      // Modificar nombre de categoría para un usuario específico
+      db.run(
+        'UPDATE categorias SET nombre = ? WHERE id = ? AND usuario_id = ?',
+        [nuevoNombre, categoriaId, usuarioId],
+        function (err) {
+          if (err) {
+            console.log('Error al modificar la categoría', err);
+            res.json({ errormsg: 'Error al modificar la categoría' });
+          } else {
+            // Modificar nombre de la categoría en todos los lugares que aparezca
+            db.run(
+              'UPDATE videos SET categoria = ? WHERE categoriaId = ?',
+              [nuevoNombre, categoriaId],
+              function (err) {
+                if (err) {
+                  console.log('Error al modificar el nombre de la categoría en los videos', err);
+                  res.json({ errormsg: 'Error al modificar la categoría' });
+                } else {
+                  res.json({ message: 'Categoría modificada correctamente' });
+                }
+              }
+            );
+          }
+        }
+      );
+    } else {
+      // Modificar nombre de todas las categorías con el mismo ID
+      db.run(
+        'UPDATE categorias SET nombre = ? WHERE id = ?',
+        [nuevoNombre, categoriaId],
+        function (err) {
+          if (err) {
+            console.log('Error al modificar la categoría', err);
+            res.json({ errormsg: 'Error al modificar la categoría' });
+          } else {
+            // Modificar nombre de la categoría en todos los lugares que aparezca
+            db.run(
+              'UPDATE videos SET categoria = ? WHERE categoriaId = ?',
+              [nuevoNombre, categoriaId],
+              function (err) {
+                if (err) {
+                  console.log('Error al modificar el nombre de la categoría en los videos', err);
+                  res.json({ errormsg: 'Error al modificar la categoría' });
+                } else {
+                  res.json({ message: 'Categoría modificada correctamente' });
+                }
+              }
+            );
+          }
+        }
+      );
+    }
+  }
+  
   // Función para listar las categorías pertenecientes al usuario que las pide
 function listarCategorias(req, res) {
     const userId = req.userID;
@@ -330,8 +390,154 @@ function listarCategorias(req, res) {
       );
     }
   }
+
+  function updateVideo(req, res, db) {
+    const { videoId, titulo, descripcion, url, categoria } = req.body;
+    const userId = req.params.uid;
+  
+    // Verificar si la categoría ya existe para el usuario
+    db.get(
+      'SELECT id FROM categorias WHERE nombre = ? AND usuario_id = ?',
+      [categoria, userId],
+      (err, row) => {
+        if (err) {
+          console.log('Error al buscar la categoría', err);
+          res.json({ errormsg: 'Error al modificar el video' });
+        } else {
+          if (row === undefined) {
+            // La categoría no existe, insertarla
+            insertCategoria(categoria, userId, db);
+          }
+  
+          // Obtener el ID de la categoría
+          db.get(
+            'SELECT id FROM categorias WHERE nombre = ? AND usuario_id = ?',
+            [categoria, userId],
+            (err, row) => {
+              if (err) {
+                console.log('Error al obtener el ID de la categoría', err);
+                res.json({ errormsg: 'Error al modificar el video' });
+              } else {
+                const categoriaId = row.id;
+  
+                // Modificar el video con el ID de la categoría correspondiente
+                db.run(
+                  'UPDATE videos SET titulo = ?, descripcion = ?, url = ?, categoria = ?, categoriaId = ? WHERE id = ? AND userId = ?',
+                  [titulo, descripcion, url, categoria, categoriaId, videoId, userId],
+                  function (err) {
+                    if (err) {
+                      console.log('Error al modificar el video', err);
+                      res.json({ errormsg: 'Error al modificar el video' });
+                    } else {
+                      res.json({ message: 'Video modificado correctamente' });
+                    }
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+  }
+  function deleteCategoria(req, res, db) {
+    const categoriaId = req.params.categoriaId;
+    const userId = req.params.uid;
+   
+    // Eliminar los videos de la categoría
+    db.run('DELETE FROM videos WHERE categoriaId = ? AND userId = ?', [categoriaId, userId], (err) => {
+        if (err) {
+        console.log('Error al eliminar los videos', err);
+        res.json({ errormsg: 'Error al eliminar la categoría' });
+        } else {
+        // Eliminar la categoría
+        db.run('DELETE FROM categorias WHERE id = ? AND usuario_id = ?', [categoriaId, userId], (err) => {
+            if (err) {
+            console.log('Error al eliminar la categoría', err);
+            res.json({ errormsg: 'Error al eliminar la categoría' });
+            } else {
+            res.json({ message: 'Categoría y videos eliminados correctamente',err });
+            }
+        });
+        }
+    });
+    }
+
+function crearUser(req,res,db){
+    db.run(
+      'INSERT INTO users (nombre, correo, password, rol) VALUES (?, ?, ?, ?)',
+      [req.body.nombre, req.body.correo, req.body.password,req.body.rol],
+      function (err) {
+        if (err) {
+          console.log('Error al insertar el usuario', err);
+          res.json({ errormsg: 'Error al insertar el usuario' });
+        } else {
+          res.json({ message: 'Usuario creado correctamente' });
+        }
+      }
+    );
+}
+  
+  
+  
+function listarUsuarios(req,res,db){
+
+    db.all('SELECT * FROM users', (err, rows) => {
+      if (err) {
+        console.log('Error al obtener los usuarios', err);
+        res.json({ errormsg: 'Error al obtener los usuarios' });
+      } else {
+        res.json(rows);
+      }
+    });
+}
   
 
+    
+function obtenerUsuario(req,res,db){
+    db.get('SELECT * FROM users WHERE uid = ?', req.params.uid, (err, row) => {
+      if (err) {
+        console.log('Error al obtener el usuario', err);
+        res.json({ errormsg: 'Error al obtener el usuario' });
+      } else {
+        res.json(row);
+      }
+    });
+}
+  
+
+    
+function updateUser(req,res,db){ 
+    db.run(
+      'UPDATE users SET nombre = ?, correo = ?, password = ? WHERE uid = ?',
+      [req.body.nombre, req.body.correo, req.body.password, req.params.uid],
+      function (err) {
+        if (err) {
+          console.log('Error al actualizar el usuario', err);
+          res.json({ errormsg: 'Error al actualizar el usuario' });
+        } else {
+          res.json({ message: 'Usuario actualizado correctamente' });
+        }
+      }
+    );
+}
+ 
+  
+  
+
+function eliminarUser(req,res,db){
+    db.run('DELETE FROM users WHERE uid = ?', req.params.uid, (err) => {
+      if (err) {
+        console.log('Error al eliminar el usuario', err);
+        res.json({ errormsg: 'Error al eliminar el usuario' });
+      } else {
+        res.json({ message: 'Usuario eliminado correctamente' });
+      }
+    });
+  }
+  
+  
+  
 //DEFINICION DE LAS RUTAS PARA CADA SERVICIO
 
 
@@ -352,9 +558,24 @@ router.put('/logout', (req, res) => {
     processLogout(req, res, db);
   }
 });
-// Ruta para insertar los videos
-router.post('/insertarvideos', verifyToken, (req, res) => {
+
+// Ruta para modificar un video
+router.put('/videos/:uid/:videoId', verifyToken, (req, res) => {
     if (!req.body.titulo || !req.body.descripcion) {
+        res.json({ errormsg: 'Petición mal formada' });
+      } else {
+        if (req.userRole === 'ADMIN_ROLE') {
+        updateVideo(req,res,db);
+      } else {
+        res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden modificar videos.' });
+      }
+    }
+    });
+
+
+// Ruta para insertar los videos
+router.post('/insertarvideos/:uid', verifyToken, (req, res) => {
+    if (!req.body || !req.params.uid) {
       res.json({ errormsg: 'Petición mal formada' });
     } else {
       if (req.userRole === 'ADMIN_ROLE') {
@@ -364,18 +585,49 @@ router.post('/insertarvideos', verifyToken, (req, res) => {
       }
     }
   });
+
 // Ruta para eliminar videos por ID
-  router.delete('/videos/:videoId', verifyToken, (req, res) => {
+  router.delete('/videos/:uid/:videoId', verifyToken, (req, res) => {
     const videoId = req.params.videoId;
-    const userId = req.userID;
+    const userId = req.params.uid;
     const userRole = req.userRole;
-  
-    if (userRole === 'ADMIN_ROLE') {
-      eliminarVideo(videoId, userId, db,res);
+    console.log(userId);
+    console.log(videoId);
+  if(!req.body || !req.params.uid || !req.params.videoId){
+    res.json({ errormsg: 'Petición mal formada' });
+  }else{
+        if (userRole === 'ADMIN_ROLE') {
+        eliminarVideo(videoId, userId, db,res);
+        } else {
+        res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden eliminar videos.' });
+        }
+    }
+  });
+//Ruta para eliminar una categoria y todos sus videos asociados o todas las categorias del usuario uid
+  router.delete('/categoria/:uid/:categoriaId', verifyToken, (req, res) => {
+    if(!req.body || !req.params.uid){
+        res.json({ errormsg: 'Petición mal formada' });
+    }else{
+    if (req.userRole === 'ADMIN_ROLE') {
+      deleteCategoria(req,res,db);
     } else {
       res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden eliminar videos.' });
     }
+}
   });
+
+  router.put('/categorias/:categoriaId', verifyToken, (req, res) => {
+    if(!req.body || !req.params.categoriaId){
+        res.json({ errormsg: 'Petición mal formada' });
+    }else{
+    if (req.userRole === 'ADMIN_ROLE') {
+      modificarCategoria(req,res,db);
+    } else {
+      res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden eliminar videos.' });
+    }
+}
+  });
+  
   // Ruta para obtener todas las categorías
 router.get('/categorias', verifyToken, (req,res)=> {
     listarCategorias(req,res);
@@ -386,6 +638,69 @@ router.get('/videos', verifyToken, (req,res)=>{
     listarVideos(req,res);
 });
 
+// Ruta para crear un nuevo usuario
+router.post('/users',verifyToken, (req, res) => {
+if (!req.body) {
+    res.json({ errormsg: 'Petición mal formada' });
+    } else {
+    if (req.userRole === 'ADMIN_ROLE') {
+    crearUser(req,res,db);
+    } else {
+    res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden crear usuarios.' });
+    }
+}
+});
+
+// Ruta para obtener todos los usuarios
+router.get('/users', verifyToken, (req, res) => {
+    if (!req.body) {
+        res.json({ errormsg: 'Petición mal formada' });
+      } else {
+        if (req.userRole === 'ADMIN_ROLE') {
+        listarUsuarios(req,res,db);
+      } else {
+        res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden listar usuarios.' });
+      }
+    }
+    });
+
+// Ruta para obtener un usuario por su ID
+router.get('/users/:uid', verifyToken, (req, res) => {
+if (!req.body || !req.params.uid) {
+    res.json({ errormsg: 'Petición mal formada' });
+    } else {
+    if (req.userRole === 'ADMIN_ROLE') {
+    obtenerUsuario(req,res,db);
+    } else {
+    res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden listar usuarios.' });
+    }
+}
+});
+
+// Ruta para actualizar un usuario por su ID
+router.put('/users/:uid',verifyToken, (req, res) => {
+if (!req.body|| !req.params.uid) {
+    res.json({ errormsg: 'Petición mal formada' });
+    } else {
+    if (req.userRole === 'ADMIN_ROLE') {
+    updateUser(req,res,db);
+    } else {
+    res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden actualizar usuarios.' });
+    }
+}
+});
+
+router.delete('/users/:uid',verifyToken,(req,res)=>{
+    if (!req.body|| !req.params.uid) {
+        res.json({ errormsg: 'Petición mal formada' });
+        } else {
+        if (req.userRole === 'ADMIN_ROLE') {
+        eliminarUser(req,res,db);
+        } else {
+        res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden eliminar usuarios.' });
+        }
+    }
+})
 
 // Agregar las rutas al servidor
 server.use('/', router);
