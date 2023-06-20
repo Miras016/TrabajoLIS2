@@ -1,0 +1,148 @@
+body{
+  background-color: #212123;
+  /* background-image: url('FONDO.png'); */
+}
+
+.principalfondo{
+  width: 1000px;
+  height: 950px;
+  text-align: center;
+  margin:0px auto;
+  padding-bottom: 100px;
+}
+
+.logotype{
+width: 250px;
+height: 250px;
+
+
+}
+
+.logo{
+  width: 1000px;
+  text-align: center;
+  margin:0px auto;
+
+}
+
+.Noaccess{
+  color: #FF0000;
+  display: none;
+}
+
+
+.RegLog{
+  width: 600px;
+  height: 700px;
+  background-color: rgba(255, 255, 255, 0.1);
+  position: absolute;
+  top: 65%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 20px;
+  box-shadow: 7px 13px 40px #000;
+
+}
+
+.Log{
+  width: 500px;
+  height: 600px;
+  background-color: #F9E5FD;
+  border-radius: 20px;
+  position: absolute;
+  left: 8%;
+  top: 7.142857%;
+  font-family: Arial;
+  box-shadow: 7px 13px 37px #000;
+
+}
+
+.Reg{
+  width: 500px;
+  height: 600px;
+  background-color: #F9E5FD;
+  border-radius: 20px;
+  position: absolute;
+  left: 54.16666666%;
+  top: 7.142857%;
+  font-family: Arial;
+  box-shadow: 7px 13px 37px #000;
+
+}
+
+.texto1{
+  color: #212123;
+  font-family: Arial;
+}
+
+.texto2{
+  color: #969696;
+  font-family: Arial;
+  height: 30px;
+  border-bottom: 1px solid;
+
+}
+
+.input{
+  width: 250px;
+  height: 25px;
+  border: 1px solid #212123;
+  background: #FCF4FE;
+}
+
+.EnvFoto{
+  width: 250px;
+  height: 25px;
+}
+
+.enviar{
+    width: 100px;
+    height: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 10px 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px 8px 8px 8px;
+    background: #212123;
+    border: none;
+    color: white;
+}
+
+.enviar:hover{
+  background: #9D9DA9;
+}
+
+.enviar2{
+    width: 150px;
+    height: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px;
+    margin: 0 10px 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px 8px 8px 8px;
+    background: #212123;
+    border: none;
+    color:white;
+}
+
+.enviar2:hover{
+  background: #9D9DA9;
+}
+
+.formLog a {
+  color: #212123;
+  text-decoration: none;
+  font-size: 20px;
+}
+
+.formLog a:hover {
+  text-decoration: underline;
+  color: #9D9DA9;
+}
+
+#aparece {
+  color: red;
+  font-family: Arial;
+}
