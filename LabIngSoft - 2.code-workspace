@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../LabIngSoft"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "LabIngSoft - 2",
+		"liveServer.settings.port": 5501
+	}
+}

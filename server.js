@@ -1,6 +1,7 @@
 'use strict'; // Modo estricto para una escritura más segura
 
 const express = require('express');
+const cors = require('cors');
 const server = express();
 const port = 8080;
 const jwt = require('jsonwebtoken');
@@ -23,13 +24,7 @@ const db = new sqlite3.Database(
 // Configurar el middleware para analizar las solicitudes con el cuerpo en formato JSON
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
-server.use(function(req, res, next) {
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost'); // Reemplaza 'http://localhost' con la URL permitida para acceder a tu servidor
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE'); // Métodos HTTP permitidos
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Encabezados permitidos en las solicitudes
-  
-    next();
-  });
+server.use(cors());
 
 // Función para verificar y descifrar el token
 function verifyToken(req, res, next) {
