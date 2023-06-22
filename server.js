@@ -273,7 +273,6 @@ function insertCategoria(nombre, usuarioId, db) { // Función que permite insert
   }
 
   function modificarCategoria(req, res, db) {
-    const usuarioId = req.query.uid;
     const categoriaId = req.params.categoriaId;
     const nuevoNombre = req.body.nombre;
   
