@@ -387,8 +387,9 @@ function listarCategorias(req, res) {
   }
 
   function updateVideo(req, res, db) {
-    const { videoId, titulo, descripcion, url, categoria } = req.body;
+    const { titulo, descripcion, url, categoria } = req.body;
     const userId = req.params.uid;
+    const videoId = req.params.videoId;
   
     // Verificar si la categoría ya existe para el usuario
     db.get(
@@ -435,6 +436,25 @@ function listarCategorias(req, res) {
       }
     );
   }
+  // Función para crear una categoría
+function crearCategoria(req, res, db) {
+  const nombre = req.body;
+  const userId = req.params.uid;
+
+  db.run(
+    'INSERT INTO categorias (nombre, usuario_id) VALUES (?, ?)',
+    [nombre, userId],
+    function (err) {
+      if (err) {
+        console.log('Error al crear la categoría', err);
+        res.json({ errormsg: 'Error al crear la categoría' });
+      } else {
+        res.json({ message: 'Categoría creada correctamente' });
+      }
+    }
+  );
+}
+
   function deleteCategoria(req, res, db) {
     const categoriaId = req.params.categoriaId;
     const userId = req.params.uid;
@@ -457,6 +477,7 @@ function listarCategorias(req, res) {
         }
     });
     }
+
 
 function crearUser(req,res,db){
     db.run(
@@ -598,6 +619,18 @@ router.post('/insertarvideos/:uid', verifyToken, (req, res) => {
         }
     }
   });
+  //Ruta para crear una categoria en función del usuario
+  router.post('/categorias/:uid', verifyToken, (req, res) => {
+    if(!req.body || !req.params.uid){
+      res.json({ errormsg: 'Petición mal formada' });
+  }else{
+  if (req.userRole === 'ADMIN_ROLE') {
+    crearCategoria(req,res,db);
+  } else {
+    res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden crear categorias.' });
+  }
+}
+});
 //Ruta para eliminar una categoria y todos sus videos asociados o todas las categorias del usuario uid
   router.delete('/categoria/:uid/:categoriaId', verifyToken, (req, res) => {
     if(!req.body || !req.params.uid){
@@ -606,7 +639,7 @@ router.post('/insertarvideos/:uid', verifyToken, (req, res) => {
     if (req.userRole === 'ADMIN_ROLE') {
       deleteCategoria(req,res,db);
     } else {
-      res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden eliminar videos.' });
+      res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden eliminar categorias.' });
     }
 }
   });
@@ -618,7 +651,7 @@ router.post('/insertarvideos/:uid', verifyToken, (req, res) => {
     if (req.userRole === 'ADMIN_ROLE') {
       modificarCategoria(req,res,db);
     } else {
-      res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden eliminar videos.' });
+      res.json({ errormsg: 'Acceso denegado. Solo los administradores pueden actualizar categorias.' });
     }
 }
   });
