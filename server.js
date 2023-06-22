@@ -438,7 +438,7 @@ function listarCategorias(req, res) {
   }
   // Función para crear una categoría
 function crearCategoria(req, res, db) {
-  const nombre = req.body;
+  const nombre = req.body.nombre;
   const userId = req.params.uid;
 
   db.run(
