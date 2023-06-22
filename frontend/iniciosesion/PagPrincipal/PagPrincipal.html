@@ -3,13 +3,117 @@
 <head>
   <meta charset="utf-8">
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
-  <!-- <script type="text/javascript" src="codigo.js"></script> -->
+  <script type="text/javascript" src="codigo.js"></script>
   <link rel="stylesheet" href="sesiondiseño.css">
   <title>Bienvenido a MásPelis</title>
 </head>
 <body>
   <div id="mi-bloque" ng-style="{'display': displayBloque}">
-    <!-- Contenido del bloque -->
+    <h2>Administrar Página</h2>
+    <div class="">
+      <div class="tab">
+        <button class="tablinks" ng-click="openForm($event, 'form1')">Usuarios</button>
+        <button class="tablinks" ng-click="openForm($event, 'form2')">Videos</button>
+        <button class="tablinks" ng-click="openForm($event, 'form3')">Categorias</button>
+      </div>
+
+      <div id="form1" class="tabcontent">
+        <h3>Usuarios</h3>
+    <div>
+      <h4>Crear Usuario</h4>
+      <form>
+        <label>Nombre:</label>
+        <input type="text" ng-model="newUser.nombre">
+        <label>Correo:</label>
+        <input type="email" ng-model="newUser.correo">
+        <label>Contraseña:</label>
+        <input type="password" ng-model="newUser.password">
+        <button ng-click="createUser()">Crear</button>
+      </form>
+    </div>
+    <div>
+      <h4>Actualizar Usuario</h4>
+      <div ng-repeat="user in users">
+        <form>
+          <label>Nombre:</label>
+          <input type="text" ng-model="user.nombre">
+          <label>Correo:</label>
+          <input type="email" ng-model="user.correo" disabled>
+          <label>Contraseña:</label>
+          <input type="password" ng-model="user.password">
+          <label>Rol:</label>
+          <input type="text" ng-model="user.rol" disabled>
+          <button ng-click="updateUser(user)">Actualizar</button>
+          <button ng-click="deleteUser(user)">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+      <div id="form2" class="tabcontent">
+        <h3>Películas</h3>
+        <div>
+          <h4>Crear Película</h4>
+          <form>
+            <label>Título:</label>
+            <input type="text" ng-model="newMovie.titulo">
+            <label>Descripción:</label>
+            <textarea ng-model="newMovie.descripcion"></textarea>
+            <label>URL:</label>
+            <input type="text" ng-model="newMovie.url">
+            <label>Categoría:</label>
+            <select ng-model="newMovie.categoria" ng-options="categoria.nombre for categoria in categorias">
+              <option value="" disabled selected>Selecciona una categoría</option>
+            </select>
+            <button ng-click="createMovie()">Crear</button>
+          </form>
+        </div>
+        <div>
+          <h4>Actualizar Película</h4>
+          <div ng-repeat="movie in movies">
+            <form>
+              <label>Título:</label>
+              <input type="text" ng-model="movie.titulo">
+              <label>Descripción:</label>
+              <textarea ng-model="movie.descripcion"></textarea>
+              <label>URL:</label>
+              <input type="text" ng-model="movie.url">
+              <label>Categoría:</label>
+              <select ng-model="movie.categoria" ng-options="categoria.nombre for categoria in categorias">
+                <option value="" disabled selected>Selecciona una categoría</option>
+              </select>
+              <button ng-click="updateMovie(movie)">Actualizar</button>
+              <button ng-click="deleteMovie(movie)">Eliminar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div id="form3" class="tabcontent">
+        <h3>Categorías</h3>
+        <div>
+          <h4>Crear Categoría</h4>
+          <form>
+            <label>Nombre:</label>
+            <input type="text" ng-model="newCategoria.nombre">
+            <button ng-click="createCategoria()">Crear</button>
+          </form>
+        </div>
+        <div>
+    <h4>Actualizar Categoría</h4>
+      <div ng-repeat="categoria in categorias">
+        <form>
+          <label>Nombre:</label>
+          <input type="text" ng-model="categoria.nombre">
+          <button ng-click="updateCategoria(categoria)">Actualizar</button>
+          <button ng-click="deleteCategoria(categoria)">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+    </div>
+
+    <button ng-click="cerrarBloque()">Cerrar</button>
   </div>
 
   <div class="listapeliculas">
@@ -44,7 +148,7 @@
               <button ng-click="BuscarPeliculas()" type="button" name="boton"> <img src="img/buscarlupa.png" class="boton"> </button>
             </form>
           </li>
-          <li><a href="PagPrincipal.html">Inicio</a></li>
+          <li><a ng-click="reiniciarPagina()">Inicio</a></li>
           <li>
             <div class="content-select">
               <select id="sele" name="generos" ng-model="selectedCategoria" ng-options="categoria.nombre as categoria.nombre for categoria in categorias" ng-change="selectChange()">
@@ -62,121 +166,5 @@
     <h4>Trabajo realizado por Juan José y David</h4>
   </div>
 
-  <script type="text/javascript">
-    angular.module('myApp', [])
-      .controller('myController', function($scope, $http) {
-        $scope.displayBloque = "none";
-        var token = sessionStorage.getItem('token');
-
-        $scope.selectChange = function() {
-          var opcionSeleccionada = $scope.selectedCategoria;
-          sessionStorage.setItem('CategoriaSeleccionada', opcionSeleccionada);
-          if (opcionSeleccionada) {
-            MostrarVideosCategorias(opcionSeleccionada);
-          }
-        };
-
-        function MostrarVideosCategorias(categoria) {
-          $scope.main = [];
-          var url = "http://localhost:8080/videos?categoria=" + categoria;
-
-          var myHeaders = {
-            "Authorization": "Bearer " + token
-          };
-
-          var config = {
-            headers: myHeaders
-          };
-
-          $http.get(url, config)
-            .then(function(response) {
-              $scope.movies = response.data;
-            })
-            .catch(function(error) {
-              console.log('error', error);
-            });
-        };
-
-        $scope.openForm = function(event, formName) {
-          // Lógica para abrir el formulario específico
-        };
-
-        $scope.cerrarBloque = function() {
-          $scope.displayBloque = "none";
-          location.reload();
-        };
-
-        $scope.abrirBloque = function() {
-          $scope.displayBloque = "block";
-        };
-
-        $scope.BuscarPeliculas = function() {
-          $scope.main = [];
-          var pelibuscada = $scope.busqueda.toLowerCase();
-          sessionStorage.setItem('peliquebusci', pelibuscada);
-          var myHeaders = {
-            "Authorization": "Bearer " + token
-          };
-
-          var config = {
-            headers: myHeaders
-          };
-
-          $http.get("https://localhost:8080/videos", config)
-            .then(function(response) {
-              var result = response.data;
-              var CategoriaSeleccionada = sessionStorage.getItem('CategoriaSeleccionada');
-
-              $scope.movies = result.filter(function(video) {
-                var titulo = video.titulo.toLowerCase();
-                var categoria = video.categoria;
-
-                if ((titulo.includes(pelibuscada) && categoria.id == CategoriaSeleccionada) || (titulo.includes(pelibuscada) && CategoriaSeleccionada === null)) {
-                  $scope.movies = result;
-                }
-              });
-            })
-            .catch(function(error) {
-              console.log('error', error);
-            });
-        };
-
-        $scope.fetchMovies = function() {
-          var url = "http://localhost:8080/videos";
-
-          var myHeaders = {
-            "Authorization": "Bearer " + token
-          };
-
-          var config = {
-            headers: myHeaders
-          };
-
-          $http.get(url, config)
-            .then(function(response) {
-              $scope.movies = response.data;
-            })
-            .catch(function(error) {
-              console.log('error', error);
-            });
-        };
-
-        $scope.fetchCategorias = function() {
-          var url = "http://localhost:8080/categorias";
-          var config = {
-            headers: {
-              "Authorization": "Bearer " + token
-            }
-          };
-          $http.get(url, config)
-            .then(function(response) {
-              $scope.categorias = response.data;
-            })
-            .catch(function(error) {
-              console.log('error', error);
-            });
-        };
-      });
-  </script>
 </body>
 </html>
