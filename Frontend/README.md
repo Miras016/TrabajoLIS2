@@ -5,7 +5,3 @@ Los endpoints que estan acutualmente implementados son:
 - { "user" : "administrador@gmail.com", "passwd" : "labingsoft" } Esto nos devuelve un token que debe almacenarse en localStorage.
 - Endpoint del logout: PUT / localhost:8080/logout. Aqui debemos pasar el token de la sesion que queremos cerrar utilizando el metodo de autentificacion Bearer Token.
 
--Miras anotaciones:
-
--  tengo que ver que cada vez que se reinicie la pagina se limpie la categoriaseleccionad.
--  no va del todo el buscador, es debido al http pero si llega a entrar a la funcion.
