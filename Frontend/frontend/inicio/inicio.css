@@ -1,0 +1,25 @@
+body{
+
+  background-image: url('PNG/Fondoinicio.jpg');
+  background-repeat:no-repeat;
+}
+
+.Botoninicio{
+      position:absolute;
+  		left:400px;
+  		top:650px;
+      font-family: Arial;
+      padding: 30px;
+      font-weight: 600;
+      font-size: 20px;
+      color: #ffffff;
+      background-color: #9776E7;
+      border-radius: 6px;
+      border: 2px solid #9776E7;
+      box-shadow: 7px 13px 37px #000;
+ }
+.Botoninicio:hover{
+   color: white;
+   background-color: #BCAAE8;
+   border-color: #BCAAE8;
+ }

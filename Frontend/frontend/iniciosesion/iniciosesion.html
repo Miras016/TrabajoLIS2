@@ -1,0 +1,31 @@
+<html ng-app="myApp">
+  <head>
+    <meta http-equiv="Access-Control-Allow-Origin" content="http://localhost">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="sesiondiseño.css">
+    <title>PeliMás(Identificación)</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script type="text/javascript" src="codigo.js"></script>
+  </head>
+  <body ng-controller="myController">
+    <div class="principalfondo">
+      <div class="logo">
+        <img class="logotype" src="PNG/LOGO2.png" >
+      </div>
+      <div class="RegLog">
+        <div class="Log">
+          <form class="formLog">
+            <h1 class="texto1">INICIO DE SESIÓN</h1>
+            <h3 class="texto2">Identifícate como usuario</h3><br><br>
+            <h2 class="texto1"><b>Correo</b></h2>
+            <input class="input" ng-model="correo" type="text" name="Nom_U" placeholder="mail" required><br>
+            <h2 class="texto1"><b>Contraseña</b></h2>
+            <input class="input" ng-model="contrasena" type="password" name="Con_U" placeholder="Password" required> <br> <br>
+            <h4 id="aparece" ng-show="usuarioIncorrecto">Usuario o Contraseña incorrectos</h4><br>
+            <input class="enviar" type="button" value="Entrar" ng-click="enviar()">
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>

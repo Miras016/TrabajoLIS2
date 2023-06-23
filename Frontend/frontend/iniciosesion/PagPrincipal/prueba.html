@@ -1,0 +1,178 @@
+<<!DOCTYPE html>
+<html ng-app="myApp" ng-controller="myController" ng-init="fetchCategorias(); fetchMovies()">
+  <head>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <!-- <script type="text/javascript" src="codigo.js"></script> -->
+    <link rel="stylesheet" href="sesiondiseño.css">
+    <title>Bienvenido a MásPelis</title>
+  </head>
+  <body>
+    <div id="mi-bloque" ng-style="{'display': displayBloque}">
+      <!-- Contenido del bloque -->
+    </div>
+
+    <div class="listapeliculas">
+      <main id="main">
+        <div class="movie" ng-repeat="movie in movies">
+          <a href="{{movie.url}}"><img src="img/pelis.jpg" alt="{{movie.titulo}}"></a>
+          <div class="movie-info">
+            <h3>{{movie.titulo}}</h3>
+          </div>
+          <div class="overview">
+            <h3>Overview</h3>
+            {{movie.descripcion}}
+          </div>
+        </div></main>
+    </div>
+
+    <div class="barrasuperior">
+      <div class="foto1">
+        <img class="logo" src="img/LOGO2.png">
+      </div>
+    </div>
+
+    <div class="navegacion">
+      <header>
+        <nav>
+          <ul>
+            <li id="ADMPag"><a href="#" ng-click="abrirBloque()">Adm. Página</a></li>
+            <li class="formu">
+              <form class="formulario" action="#" method="post">
+                <input type="text" name="buscador" id="pelibuscada" placeholder="Buscar Película" ng-model="busqueda">
+                <button ng-click="BuscarPeliculas()" type="button" name="boton"> <img src="img/buscarlupa.png" class="boton"> </button>
+              </form>
+            </li>
+            <li><a href="PagPrincipal.html">Inicio</a></li>
+            <li>
+              <div class="content-select">
+                <select id="sele" name="generos" ng-model="selectedCategoria" ng-options="categoria.nombre as categoria.nombre for categoria in categorias" ng-change="selectChange()">
+                  <option value="" hidden>¿Qué Ver?</option>
+                  <option value="QV" hidden selected>¿Qué Ver?</option>
+                </select>
+              </div>
+            </li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+    <div class="informacion">
+      <h4>Trabajo realizado por Juan José y David</h4>
+    </div>
+
+    <script type="text/javascript">
+      angular.module('myApp', [])
+        .controller('myController', function($scope, $http) {
+          $scope.displayBloque = "none";
+          var token = sessionStorage.getItem('token');
+
+          $scope.selectChange = function() {
+            var opcionSeleccionada = $scope.selectedCategoria;
+            sessionStorage.setItem('CategoriaSeleccionada', opcionSeleccionada);
+            if (opcionSeleccionada) {
+              MostrarVideosCategorias(opcionSeleccionada);
+            }
+          };
+
+        function MostrarVideosCategorias(categoria) {
+            $scope.main = [];
+            var url = "http://localhost:8080/videos?categoria=" + categoria;
+
+            var myHeaders = {
+              "Authorization": "Bearer " + token
+            };
+
+            var config = {
+              headers: myHeaders
+            };
+
+            $http.get(url, config)
+           .then(function(response) {
+             $scope.movies = response.data;
+           })
+           .catch(function(error) {
+             console.log('error', error);
+           });
+          };
+
+          $scope.openForm = function(event, formName) {
+            // Lógica para abrir el formulario específico
+          };
+
+          $scope.cerrarBloque = function() {
+            $scope.displayBloque = "none";
+            location.reload();
+          };
+
+          $scope.abrirBloque = function() {
+            $scope.displayBloque = "block";
+          };
+
+          $scope.BuscarPeliculas = function() {
+            $scope.main = [];
+            var pelibuscada = $scope.busqueda.toLoweCase();
+
+            var myHeaders = {
+              "Authorization": "Bearer " + token
+            };
+            var config = {
+              headers: myHeaders
+            };
+
+            $http.get("https://localhost:8080/videos", config)
+            .then(function(response) {
+              var result = response.data;
+              result.forEach(function(video) {
+                var titulo = video.titulo;
+                var nombre = titulo.toLowerCase();
+                var CategoriaSeleccionada = sessionStorage.getItem('CategoriaSeleccionada');
+                if ((nombre.includes(pelibuscada) && categoria.id == CategoriaSeleccionada) || (nombre.includes(pelibuscada) && sessionStorage.getItem('CategoriaSeleccionada') === null)) {
+                  $scope.movies = response.data;
+                }}})
+            .catch(function(error) {
+              console.log('error', error);
+            });
+
+
+          };
+
+          $scope.fetchMovies = function(){
+            var url = "http://localhost:8080/videos";
+
+            var myHeaders = {
+              "Authorization": "Bearer " + token
+            };
+
+            var config = {
+              headers: myHeaders
+            };
+
+            $http.get(url, config)
+           .then(function(response) {
+             $scope.movies = response.data;
+           })
+           .catch(function(error) {
+             console.log('error', error);
+           });
+          };
+
+          $scope.fetchCategorias = function() {
+            var url = "http://localhost:8080/categorias";
+            var config = {
+              headers: {
+                "Authorization": "Bearer " + token
+              }
+            };
+            $http.get(url, config)
+              .then(function(response) {
+                $scope.categorias = response.data;
+              })
+              .catch(function(error) {
+                console.log('error', error);
+              });
+          };
+        });
+    </script>
+  </body>
+</html>
